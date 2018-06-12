@@ -1,37 +1,55 @@
-CREATE TYPE "Adresse" AS
+CREATE OR REPLACE TYPE typAdresse AS OBJECT
 (
-	"Numero" integer,
-	"NomVoie" text
+	Numero number(100),
+	NomVoie varchar2(100)
+);
+/
+
+--CREATE OR REPLACE TYPE typClasse AS ENUM
+--('1', '2');
+--/
+
+--CREATE OR REPLACE TYPE typMoyenPaiement AS ENUM 
+--('especes', 'cheque', 'carte_bleue');
+--/
+
+--CREATE OR REPLACE TYPE typStatutVoyageur AS ENUM
+--('Occasionnel', 'Argent', 'Or', 'Platine');
+--/
+
+
+CREATE OR REPLACE TYPE typVille AS OBJECT(
+    Nom varchar2(100),
+    CP number(5),
+    ZoneHoraire number(2) 
+);
+/
+
+CREATE TABLE Ville OF typVille(
+	PRIMARY KEY(Nom),
+	CP NOT NULL,
+	ZoneHoraire NOT NULL,
+	CONSTRAINT CP_key UNIQUE (CP),
+    CONSTRAINT ZoneHor_ok CHECK (ZoneHoraire >= -12 AND ZoneHoraire <= 12)
 );
 
-CREATE TYPE "Classe" AS ENUM
-('1', '2');
-
-CREATE TYPE "MoyenPaiement" AS ENUM
-('especes', 'cheque', 'carte_bleue');
-
-CREATE TYPE "StatutVoyageur" AS ENUM
-('Occasionnel', 'Argent', 'Or', 'Platine');
-
-
-
-CREATE TABLE "Ville"
-(
-    "Nom" varchar PRIMARY KEY,
-    "CP" numeric(5,0) NOT NULL,
-    "ZoneHoraire" integer NOT NULL,
-    CONSTRAINT "CP_key" UNIQUE ("CP"),
-    CONSTRAINT "ZoneHor_ok" CHECK ("ZoneHoraire" >= -12 AND "ZoneHoraire" <= 12)
+CREATE OR REPLACE TYPE typGare(
+    Nom varchar2(100),
+	Adresse typAdresse,
+    refVille REF typVille,
+    SCOPE FOR (refVille) IS Ville
 );
+/
+
 
 CREATE TABLE "Gare"
 (
-	"Nom" varchar NOT NULL,
-	"Adresse" "Adresse" NOT NULL,
-	"Ville" varchar NOT NULL,
-	CONSTRAINT "Gare_pkey" PRIMARY KEY ("Nom", "Ville"),
-    CONSTRAINT "Ville_fkey" FOREIGN KEY ("Ville")
-	REFERENCES "Ville" ("Nom") MATCH SIMPLE
+	Nom NOT NULL,
+	Adresse NOT NULL,
+	refVille NOT NULL,
+	CONSTRAINT Gare_pkey PRIMARY KEY (Nom, Ville),
+    CONSTRAINT Ville_fkey FOREIGN KEY (Ville)
+	REFERENCES Ville (Nom) MATCH SIMPLE
 );
 
 CREATE TABLE "Hotel"
