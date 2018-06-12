@@ -158,78 +158,90 @@ Planning de tPlanning(#Nom) avec (Jours, Debut, Fin) unique
 ```
 
 ```markdown
-Exception(#Id: unsigned integer, Nom: string, Planning=>Planning.Nom, __Ajoute__: boolean, DateDebut: date, DateFin: date) avec (Planning, DateDebut, DateFin) clé et (Nom, Planning) clé
-	Exception.Id -> Exception.Nom
-	Exception.Id -> Planning.Nom
-	Exception.Id -> Excpetion.Ajoute
-	Exception.Id -> Exception.DateDebut
-	Exception.Id -> Exception.DateFin
-	Planning.Nom, Exception.DateDebut, Exception.DateFin -> Exception.Id
-	Planning.Nom, Exception.DateDebut, Exception.DateFin -> Exception.Nom
-	Planning.Nom, Exception.DateDebut, Exception.DateFin -> Excpetion.Ajoute
-	Exception.Nom, Planning.Nom -> Exception.Id
-	Exception.Nom, Planning.Nom -> Exception.DateDebut
-	Exception.Nom, Planning.Nom ->Exception.DateFin
-	Exception.Nom, Planning.Nom ->Exception.Ajoute
+type tException <Id: unsigned integer, Nom: string, PlanningException =>o Planning, Ajoute : boolean, DateDebut: date, DateFin: date>
+
+Exception de tException(#Id Nom ) avec (Planning, DateDebut, DateFin) clé et (Nom, Planning) clé
+        Exception.Id -> Exception.Nom
+        Exception.Id -> Planning.Nom
+        Exception.Id -> Excpetion.Ajoute
+        Exception.Id -> Exception.DateDebut
+        Exception.Id -> Exception.DateFin
+        Planning.Nom, Exception.DateDebut, Exception.DateFin -> Exception.Id
+        Planning.Nom, Exception.DateDebut, Exception.DateFin -> Exception.Nom
+        Planning.Nom, Exception.DateDebut, Exception.DateFin -> Excpetion.Ajoute
+        Exception.Nom, Planning.Nom -> Exception.Id
+        Exception.Nom, Planning.Nom -> Exception.DateDebut
+        Exception.Nom, Planning.Nom ->Exception.DateFin
+        Exception.Nom, Planning.Nom ->Exception.Ajoute
 ```
 Même justification, tous les attributs non clés dépendent uniquement de clés : 3NF.
 
 ```markdown
-Trajet(#Numero: unsigned int, Ligne=>Ligne.Numero, HeureDepart: time, HeureArrivee: time, PrixPrem: float, __PrixSec__: float, __Planning__=>Planning.Nom) avec (HeureDepart, Ligne) et (HeureArrivee, Ligne) clés
-	Trajet.Numero -> Ligne.Numero
-	Trajet.Numero -> Trajet.HeureDepart
-	Trajet.Numero -> Trajet.HeureArrivee
-	Trajet.Numero -> Trajet.PrixPrem
-	Trajet.Numero -> Trajet.PrixSec
-	Trajet.Numero -> Planning.Nom
-	Trajet.HeureDepart, Ligne.Numero -> Trajet.Numero
-	Trajet.HeureDepart, Ligne.Numero ->  Trajet.HeureArrivee
-	Trajet.HeureDepart, Ligne.Numero ->  Trajet.PrixPrem
-	Trajet.HeureDepart, Ligne.Numero ->  Trajet.PrixSec
-	Trajet.HeureDepart, Ligne.Numero -> Planning.Nom
-	Trajet.HeureArrivee, Ligne.Numero -> Trajet.Numero
-	Trajet.HeureArrivee, Ligne.Numero -> Trajet.HeureDepart
-	Trajet.HeureArrivee, Ligne.Numero -> Trajet.PrixPrem
-	Trajet.HeureArrivee, Ligne.Numero -> Trajet.PrixSec
-	Trajet.HeureArrivee, Ligne.Numero -> Planning.Nom
+type tTrajet<Numero: unsigned int, LigneTrajet =>o Ligne, HeureDepart: time, HeureArrivee: time, PrixPrem: float, __PrixSec__: float, __Planning__=>Planning.Nom) avec (HeureDepart, Ligne) et (HeureArrivee, Ligne) clés
+Trajet de tTrajet(#Numero) avec (HeureDepart, Ligne) et (HeureArrivee, Ligne) clés
+        Trajet.Numero -> Ligne.Numero
+        Trajet.Numero -> Trajet.HeureDepart
+        Trajet.Numero -> Trajet.HeureArrivee
+        Trajet.Numero -> Trajet.PrixPrem
+        Trajet.Numero -> Trajet.PrixSec
+        Trajet.Numero -> Planning.Nom
+        Trajet.HeureDepart, Ligne.Numero -> Trajet.Numero
+        Trajet.HeureDepart, Ligne.Numero ->  Trajet.HeureArrivee
+        Trajet.HeureDepart, Ligne.Numero ->  Trajet.PrixPrem
+        Trajet.HeureDepart, Ligne.Numero ->  Trajet.PrixSec
+        Trajet.HeureDepart, Ligne.Numero -> Planning.Nom
+        Trajet.HeureArrivee, Ligne.Numero -> Trajet.Numero
+        Trajet.HeureArrivee, Ligne.Numero -> Trajet.HeureDepart
+        Trajet.HeureArrivee, Ligne.Numero -> Trajet.PrixPrem
+        Trajet.HeureArrivee, Ligne.Numero -> Trajet.PrixSec
+        Trajet.HeureArrivee, Ligne.Numero -> Planning.Nom
 ```
 Tous les attributs non clés dépendent uniquement de clés : 3NF.
 
 ```markdown
-Voyageur(#Id: unsigned int, Nom: string, Prenom: string, NumeroTel: numeric, __TypeVoyageur__: string{'Occasionnel', 'Argent', 'Or', 'Platine'}, NumeroCarte: numeric, Adresse: string, Ville: string) avec (Nom, Prenom, Adresse, Ville) clé et NumeroCarte et NumeroTel uniques s'ils existent
-	Voyageur.Id -> Voyageur.Nom
-	Voyageur.Id ->Voyageur.Prenom
-	Voyageur.Id ->Voyageur.NumeroTel
-	Voyageur.Id -> Voyageur.TypeVoyageur
-	Voyageur.Id -> Voyageur.NumeroCarte
-	Voyageur.Id -> Voyageur.Adresse
-	Voyageur.Id -> Voyageur.Ville
-	Voyageur.Nom, Voyageur.Prenom, Voyageur.Adresse, Voyageur.Ville -> Voyageur.Id
-	Voyageur.Nom, Voyageur.Prenom, Voyageur.Adresse, Voyageur.Ville ->  Voyageur.NumeroTel
-	Voyageur.Nom, Voyageur.Prenom, Voyageur.Adresse, Voyageur.Ville ->  Voyageur.NumeroCarte
+ 
+type tVoyageur<Id: unsigned int, Nom: string, Prenom: string, NumeroTel: numeric, __TypeVoyageur__: string{'Occasionnel', 'Argent', 'Or', 'Platine'},
+NumeroCarte: numeric, Adresse: string, Ville: string, =updateState:Bool>
+
+Voyageur de tVoyageur(#Id: unsigned int) avec (Nom, Prenom, Adresse, Ville) clé et NumeroCarte et NumeroTel uniques s'ils existent1
+        Voyageur.Id -> Voyageur.Nom
+        Voyageur.Id ->Voyageur.Prenom
+        Voyageur.Id ->Voyageur.NumeroTel
+        Voyageur.Id -> Voyageur.TypeVoyageur
+        Voyageur.Id -> Voyageur.NumeroCarte
+        Voyageur.Id -> Voyageur.Adresse
+        Voyageur.Id -> Voyageur.Ville
+        Voyageur.Nom, Voyageur.Prenom, Voyageur.Adresse, Voyageur.Ville -> Voyageur.Id
+        Voyageur.Nom, Voyageur.Prenom, Voyageur.Adresse, Voyageur.Ville ->  Voyageur.NumeroTel
+        Voyageur.Nom, Voyageur.Prenom, Voyageur.Adresse, Voyageur.Ville ->  Voyageur.NumeroCarte
 ```
 Seules les clés génèrent des attributs non clés. 3NF.
 
 ```markdown
-Reservation(#Numero: unsigned int, __Voyageur__=>Voyageur.id, __Assurance__: boolean, __MoyenPaiement__: string{'CB', 'Chèque', 'Espèces'})
-	Reservation.Numero -> Voyageur.Id
-	Reservation.Numero -> Reservation.Assurance
-	Reservation.Numero -> Reservation.MoyenPaiement
+type tReservation(Numero: unsigned int, __Voyageur__=>Voyageur.id, __Assurance__: boolean, __MoyenPaiement__: string{'CB', 'Chèque', 'Espèces'}
+
+Reservation de tReservation(#Numero)
+        Reservation.Numero -> Voyageur.Id
+        Reservation.Numero -> Reservation.Assurance
+        Reservation.Numero -> Reservation.MoyenPaiement
 ```
 La clé primaire génère tous les autres attributs. 3NF.
 
 ```markdown
-Billet(#Numero: int, Trajet=>Trajet.Numero, Date: date, __Classe__: int{1, 2}, Place: unsigned int, Annule: boolean, Reservation=>Reservation.Numero) avec (Trajet, Date, Place) clé
-	Billet.Numero -> Trajet.Numero
-	Billet.Numero -> Billet.Date
-	Billet.Numero -> Billet.Classe
-	Billet.Numero -> Billet.Place
-	Billet.Numero -> Billet.Annule
-	Billet.Numero -> Reservation.Numero
-	Billet.Date, Billet.Place, Trajet.Numero -> Billet.Numero
-	Billet.Date, Billet.Place, Trajet.Numero -> Billet.Classe
-	Billet.Date, Billet.Place, Trajet.Numero -> Billet.Annule
-	Billet.Date, Billet.Place, Trajet.Numero -> Reservation.Numero
+type tBillet<Numero: int, Trajet=>o Trajet, Date: date, __Classe__: int{1, 2}, Place: unsigned int, Annule: boolean, Reservation =>o Reservation,
+=prixBille:float, =montantDeRembourcementBillet:float>
+
+Billet(#Numero) avec (Trajet, Date, Place) clé
+        Billet.Numero -> Trajet.Numero
+        Billet.Numero -> Billet.Date
+        Billet.Numero -> Billet.Classe
+        Billet.Numero -> Billet.Place
+        Billet.Numero -> Billet.Annule
+        Billet.Numero -> Reservation.Numero
+        Billet.Date, Billet.Place, Trajet-> Billet.Numero
+        Billet.Date, Billet.Place, Trajet -> Billet.Classe
+        Billet.Date, Billet.Place, Trajet -> Billet.Annule
+        Billet.Date, Billet.Place, Trajet -> Reservation.Numero
 ```
 Tous les attributs non clés dépendent uniquement de clés : 3NF.
 
