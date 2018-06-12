@@ -42,6 +42,8 @@ La SCF veut aussi pouvoir manipuler d’autres types d’objets, qui sont défin
 Ce sont aussi des classes puisqu’on veut pouvoir en créer plusieurs instances toutes calquées sur un modèle bien précis, mais elles sont dérivées des premières et reposent sur des associations avec celles-ci ou avec les premières classes secondaires de la liste.
 
 #### Choix techniques
+Nous allons ici utiliser une base de donnée en relationnel-objet afin de profiter des références d'objet, des tables imbriquées ainsi que des méthodes de tables.
+
 Lors du recueil des besoins, la SCF a laissé entendre que tous ses trains étaient sans arrêt. Nous nous appuierons sur cette donnée pour définir simplement une ligne en tant qu'association entre une gare de départ et une gare d'arrivée.
 
 La SCF voulait pouvoir changer les plannings des trains sur des jours spéciaux. Nous considérons que ces jours sont spéciaux pour tous les trajets et que ce sont donc les plannings qui sont modifiés. Si l’exception supprime une date, aucun des trajets reliés à ce planning n’aura lieu à cette date. Si elle ajoute une date, les trajets seront effectués même si cette date est en-dehors de la période ou tombe un jour de la semaine où ce trajet n’est pas effectué normalement. Avec ces choix, pour définir un trajet exceptionnel sur des horaires différents, il faut créer un trajet pour cet horaire, y associer un planning vide et les dates d’exception concernées.
@@ -100,32 +102,36 @@ Il se traduit en un ensemble de tables, que nous pourront créer dans la base de
 
 Nous avons souligné les attributs non clés qui doivent être non nuls.
 ```markdown
-Ville(#Nom: string, CP: integer, __ZoneHoraire__: integer) avec CP clé
+type tVille : <Nom: string, CP: integer, ZoneHoraire: integer>
+
+Ville de tVille(#Nom: string) avec CP clé et ZoneHoraire non nul
 	Ville.Nom -> Ville.CP
 	Ville.Nom -> ZoneHoraire
 	Ville.CP -> Ville.Nom
 ```
 Est 3NF puisque toutes les DFE vers des attributs non-clé sont issues de clés, et la clé est atomique.
 
-```markdown
-Gare(#Nom: string, #Ville=>Ville.Nom, __Adresse__: string)
-	Gare.Nom, Ville.nom -> Gare.Adresse
-```
-Ici la clé est composée de deux attributs, mais aucun n'est issu d'une partie seulement de la clé, donc 3NF.
 
 ```markdown
-Hotel(#NomH: string, #Ville=>Gare.Ville, __Adresse__: string, __NomG__=>Gare.Nom, PrixNuit: unsigned integer) avec (Adresse, Ville) clé
-	Hotel.NomH, Gare.Ville -> Hotel.Adresse
-	Hotel.NomH, Gare.Ville -> Gare.Nom
-	Hotel.NomH, Gare.Ville ->Hotel.PrixNuit
-	Hotel.Adresse, Gare.Ville -> Hotel.NomH
-  	Hotel.Adresse, Gare.Ville -> Gare.Nom
-	Hotel.Adresse, Gare.Ville -> Hotel.PrixNuit
+type tHotel<NomH: string, Adresse: string, PrixNuit: unsigned integer>
+type listeHotels : Collection de <tHotel>
+
 ```
-Encore une fois, la clé est composée de deux attributs, mais aucun n'est issu d'une partie seulement de la clé, donc 3NF, et même BCNF puisque tous les attributs sont issus de clés.
+Les hôtels sont stockés dans une collection imbriquée dans la table Gare. (Voir ci-dessous)
+
 
 ```markdown
-TypeTrain(#Nom: string, __nbPlacesPrem__: unsigned integer, __nbPlacesSec__: unsigned integer, __vitesseMax__: unsigned integer)
+type tGare<Nom: string, Ville=>Ville.Nom, Adresse: string, Hotels: listeHotels>
+Gare de tGare(#Nom, #Ville=>Ville.Nom) avec Adresse non nul
+	Gare.Nom, Ville=>Ville.Nom -> Gare.Adresse
+```
+On doit utiliser une clé étrangère (nomVille) vers la table Ville car cette clé étrangère fait partie de la clé primaire.
+Tous les attributs ne sont pas atomiques (Hotels est une table imbriquée), donc la table n'est même pas en 1NF.
+
+
+```markdown
+type tTypeTrain<Nom: string, nbPlacesPrem: unsigned integer, nbPlacesSec: unsigned integer, vitesseMax: unsigned integer>
+TypeTrain de tTypeTrain(#Nom: string) avec nbPlacesPrem, nbPlacesSec, vitesseMax non nuls
 	TypeTrain.Nom -> TypeTrain.nbPlacesPrem
 	TypeTrain.Nom ->TypeTrain.nbPlacesSec
 	TypeTrain.Nom -> TypeTrain.vitesseMax
@@ -133,19 +139,19 @@ TypeTrain(#Nom: string, __nbPlacesPrem__: unsigned integer, __nbPlacesSec__: uns
 De même, attributs atomiques qui dépendent de Nom qui est ici la clé primaire. Toutes les DFE sont issues d'une clé, on a même une BCNF, donc 3NF.
 
 ```markdown
-Ligne(#Numero: unsigned integer, NomGareDep=>Gare.Nom, VilleGareDep=>Gare.Ville, NomGareArr=>Gare.Nom, VilleGareArr=>Gare.Ville, ModeleTrain=>TypeTrain.Nom) avec (NomGareDep, VilleGareDep, NomGareArr, VilleGareArr, ModeleTrain) clé
-	Ligne.Numero ->  NomGareDep=>Gare.Nom
-	Ligne.Numero -> VilleGareDep=>Gare.Ville
-	Ligne.Numero ->  NomGareArr=>Gare.Nom
-	Ligne.Numero -> VilleGareArr=>Gare.Ville
-	Ligne.Numero -> TypeTrain.Nom
-	NomGareDep, VilleGareDep, NomGareArr, VilleGareArr, ModeleTrain ->Ligne.Numero
-	NomGareDep, VilleGareDep, NomGareArr, VilleGareArr, ModeleTrain ->TypeTrain.Nom
+type tLigne<Numero: unsigned integer, GareDep =>o Gare, GareArr =>o Gare, ModeleTrain =>o TypeTrain>
+Ligne de tLigne(#Numero) avec (GareDep, GareArr, ModeleTrain) clé
+	Ligne.Numero ->  GareDep
+	Ligne.Numero -> GareArr
+	Ligne.Numero -> ModeleTrain
+	GareDep, GareArr, ModeleTrain ->Ligne.Numero
+	GareDep, GareArr, ModeleTrain ->TypeTrain.Nom
 ```
 Tous les attributs qui n'appartiennent à aucune clé candidate (à savoir `TypeTrain.Nom`) ne dépendant directement que de clés candidates.
 
 ```markdown
-Planning(#Nom: string, Jours: boolean array, Debut: date, Fin: date) avec (Jours, Debut, Fin) unique
+type tPlanning(Nom: string, Jours: boolean array, Debut: date, Fin: date)
+Planning de tPlanning(#Nom) avec (Jours, Debut, Fin) unique
 	Planning.Nom -> Planning.Jours
 	Planning.Nom -> Planning.Debut
 	Planning.Nom -> Planning.Fin
