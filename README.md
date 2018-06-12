@@ -1,4 +1,4 @@
-# Projet Société de Chemins de Fer
+﻿# Projet Société de Chemins de Fer
 
 ## Installation
 
@@ -93,7 +93,7 @@ Si notre système contient toutes les informations listées ci-dessus, il est al
 
 ## Modèle conceptuel de données
 Des besoins de la SCF et des interprétations que nous avons explicitées ci-dessus, nous avons construit le modèle de données suivant :
-![UML](https://raw.githubusercontent.com/bertille-ddp/NF17/master/uml/MCD.png)
+![UML](https://raw.githubusercontent.com/bertille-ddp/NF17/nonrelationnel/uml/MCD.png)
 
 ## Modèle logique de données et dépendances fonctionnelles
 Il se traduit en un ensemble de tables, que nous pourront créer dans la base de données.
