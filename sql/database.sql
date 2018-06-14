@@ -144,8 +144,8 @@ TYPE typTrajet AS OBJECT
 (
 	numero number,
 	refLigne REF typLigne,
-	HeureDepart date,
-	HeureArrivee date,
+	HeureDepart DATE,-- marche qu'en version 9 : INTERVAL HOUR(2) TO SECOND(2),
+	HeureArrivee DATE,-- marche qu'en version 9 : INTERVAL HOUR(2) TO SECOND(2),
 	PrixPrem numeric(5,2),
 	PrixSec numeric(5,2),
 	refPlanning REF typPlanning
@@ -217,12 +217,12 @@ CREATE TABLE Reservation OF typReservation
 CREATE TABLE Billet
 (
 	numero number PRIMARY KEY,
-	refTrajet REF typTrajet NOT NULL,
-	SCOPE FOR (refTrajet) IS Trajet,
 	dateDepart DATE NOT NULL,
 	Classe varchar2(1) NOT NULL check(Classe IN ('1', '2')),
 	Place number,
 	Annule number(1) NOT NULL,
+	refTrajet REF typTrajet NOT NULL,
+	SCOPE FOR (refTrajet) IS Trajet,
 	refReservation REF typReservation,
 	SCOPE FOR (refReservation) IS Reservation,
 	CONSTRAINT Place_pos CHECK (Place > 0)

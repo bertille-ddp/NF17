@@ -1,4 +1,3 @@
-DELETE FROM Ville;
 DELETE FROM Gare;
 DELETE FROM TypeTrain;
 DELETE FROM Ligne;
@@ -8,3 +7,4 @@ DELETE FROM Trajet;
 DELETE FROM Voyageur;
 DELETE FROM Reservation;
 DELETE FROM Billet;
+DELETE FROM Ville;
