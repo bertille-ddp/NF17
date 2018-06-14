@@ -1,21 +1,9 @@
 CREATE OR REPLACE TYPE typAdresse AS OBJECT
 (
-	Numero number(100),
+	Numero number(10),
 	NomVoie varchar2(100)
 );
 /
-
---CREATE OR REPLACE TYPE typClasse AS ENUM
---('1', '2');
---/
-
---CREATE OR REPLACE TYPE typMoyenPaiement AS ENUM 
---('especes', 'cheque', 'carte_bleue');
---/
-
---CREATE OR REPLACE TYPE typStatutVoyageur AS ENUM
---('Occasionnel', 'Argent', 'Or', 'Platine');
---/
 
 
 CREATE OR REPLACE TYPE typVille AS OBJECT(
@@ -32,184 +20,212 @@ CREATE TABLE Ville OF typVille(
 	CONSTRAINT CP_key UNIQUE (CP),
     CONSTRAINT ZoneHor_ok CHECK (ZoneHoraire >= -12 AND ZoneHoraire <= 12)
 );
+/
 
-CREATE OR REPLACE TYPE typGare(
+
+CREATE OR REPLACE TYPE Hotel AS OBJECT
+(
+	Nom varchar2(100),
+	Adresse typAdresse,
+	Ville varchar2(100),
+	PrixNuit numeric
+);
+/
+
+CREATE OR REPLACE TYPE listeHotels AS TABLE OF Hotel;
+/
+
+
+CREATE OR REPLACE TYPE typGare AS OBJECT(
     Nom varchar2(100),
 	Adresse typAdresse,
-    refVille REF typVille,
-    SCOPE FOR (refVille) IS Ville
+    refVille varchar2(100),
+    Hotels listeHotels
+);
+/
+
+CREATE TABLE Gare OF typGare(
+    Nom NOT NULL,
+	Adresse NOT NULL,
+    refVille NOT NULL,
+    PRIMARY KEY (Nom,refVille),
+	CONSTRAINT Ville_fkey 
+    FOREIGN KEY (refVille) 
+    REFERENCES Ville(Nom)
+)
+NESTED TABLE Hotels STORE AS tabDesHotels;
+/
+
+
+CREATE OR REPLACE TYPE typTypeTrain AS OBJECT
+(
+	Nom varchar2(100),
+	nbPlacesPrem number,
+	nbPlacesSec	number,
+	vitesseMax number
+);
+/
+
+CREATE TABLE TypeTrain OF typTypeTrain
+(
+	PRIMARY KEY (nom),
+	nbPlacesPrem NOT NULL,
+	nbPlacesSec NOT NULL,
+	vitesseMax NOT NULL,
+	CONSTRAINT nbPlacesPrem_pos CHECK (nbPlacesPrem >= 0),
+	CONSTRAINT nbPlacesSec_pos CHECK (nbPlacesSec > 0),
+	CONSTRAINT vitesseMax_pos CHECK (vitesseMax > 0)
 );
 /
 
 
-CREATE TABLE "Gare"
+CREATE OR REPLACE TYPE typLigne AS OBJECT
 (
+	numero number,
+	GareDep REF typGare,
+	GareArr REF typGare,
+	TypeTrain varchar2(100)
+);
+/
+
+CREATE TABLE Ligne OF typLigne
+(
+	PRIMARY KEY(numero),
+	SCOPE FOR (GareDep) IS Gare,
+	SCOPE FOR (GareArr) IS Gare,
+    CONSTRAINT Depart_arrivee_diff CHECK (GareDep <> GareArr),
+	CONSTRAINT Id_diff_0 CHECK (numero <> 0)
+);
+/
+
+
+CREATE OR REPLACE TYPE typPlanning AS OBJECT
+(
+	Nom varchar2(100),
+	Jours varchar2(7), --je n'ai pas trouvé comment faire un tableau de 7 boolean avec oracle
+    Debut date,
+    Fin date
+);
+/
+
+CREATE TABLE Planning OF typPlanning
+(
+	PRIMARY KEY(Nom),
+	Jours NOT NULL,
+    CONSTRAINT Donnees_key UNIQUE (Jours, Debut, Fin),
+    CONSTRAINT Debut_avant_fin CHECK (Debut <= Fin)
+);
+/
+
+CREATE OR REPLACE TYPE typException AS OBJECT
+(
+	numero number,
+	Nom varchar2(100),
+	refPlanning REF typPlanning,
+	Ajoute  number(1), --pas de boolean en oracle
+	DateDebut date,
+	DateFin date
+);
+/
+
+CREATE TABLE Exceptions OF typException
+(
+	PRIMARY KEY (numero),
+	refPlanning NOT NULL,
+	Ajoute NOT NULL,
+	SCOPE FOR (refPlanning) IS Planning,
+	CONSTRAINT DateDebutInferieurDateFin CHECK (DateDebut<=DateFin),
+	numero NOT NULL
+);
+/
+
+CREATE OR REPLACE
+TYPE typTrajet AS OBJECT
+(
+	numero number,
+	refLigne REF typLigne,
+	HeureDepart date,
+	HeureArrivee date,
+	PrixPrem numeric(5,2),
+	PrixSec numeric(5,2),
+	refPlanning REF typPlanning
+);
+/
+
+CREATE TABLE Trajet OF typTrajet
+(
+	PRIMARY KEY (numero),
+	SCOPE FOR(refLigne) IS Ligne,
+	HeureDepart NOT NULL,
+	HeureArrivee NOT NULL,
+	PrixSec NOT NULL,
+	SCOPE FOR (refPlanning) IS Planning,
+	CONSTRAINT Arrivee_apres_depart CHECK (HeureDepart < HeureArrivee),
+	CONSTRAINT PrixSec_pos CHECK (PrixSec > 0),
+	CONSTRAINT PrixPrem_pos CHECK (PrixPrem > 0),
+	numero NOT NULL
+);
+/
+
+CREATE OR REPLACE TYPE typVoyageur AS OBJECT
+(
+	numero number,
+	Nom varchar2(100),
+	Prenom varchar2(100),
+	NumeroTel number(10),
+    TypeVoyageur varchar(20),
+	NumeroCarte number(12),
+    Adresse typAdresse,
+	refVille REF typVille
+);
+/
+
+
+CREATE TABLE Voyageur OF typVoyageur
+(
+	PRIMARY KEY(numero),
 	Nom NOT NULL,
-	Adresse NOT NULL,
-	refVille NOT NULL,
-	CONSTRAINT Gare_pkey PRIMARY KEY (Nom, Ville),
-    CONSTRAINT Ville_fkey FOREIGN KEY (Ville)
-	REFERENCES Ville (Nom) MATCH SIMPLE
+	Prenom NOT NULL,
+    SCOPE FOR (refVille) IS Ville,
+	CONSTRAINT NumeroCarte_key UNIQUE (NumeroCarte),
+	CONSTRAINT NumeroTel_key UNIQUE (NumeroTel),
+	numero NOT NULL,
+	CONSTRAINT enumTypeVoyageur TypeVoyageur CHECK (TypeVoyageur IN ('Occasionnel', 'Argent', 'Or', 'Platine'))
 );
+/
 
-CREATE TABLE "Hotel"
+
+CREATE OR REPLACE TYPE typReservation AS OBJECT
 (
-	"Nom" varchar NOT NULL,
-	"Adresse" "Adresse" NOT NULL,
-	"Ville" varchar NOT NULL,
-	"Gare" varchar,
-	"PrixNuit" integer,
-	CONSTRAINT "Hotel_pkey" PRIMARY KEY ("Nom", "Ville"),
-	CONSTRAINT "Adresse_Ville_key" UNIQUE ("Adresse", "Ville"),
-	CONSTRAINT "Gare_Ville_fkey" FOREIGN KEY ("Gare", "Ville")
-	REFERENCES "Gare" ("Nom", "Ville") MATCH SIMPLE,
-	CONSTRAINT "PrixNuit_pos" CHECK ("PrixNuit" > 0)
+	numero number,
+	refVoyageur REF typVoyageur,
+	Assurance number(1),
+	MoyenPaiement varchar2(20)
 );
+/
 
-CREATE TABLE "TypeTrain"
+CREATE TABLE Reservation OF typReservation
 (
-	"Nom" varchar PRIMARY KEY,
-	"nbPlacesPrem" integer NOT NULL,
-	"nbPlacesSec" integer NOT NULL,
-	"vitesseMax" integer NOT NULL,
-	CONSTRAINT "nbPlacesPrem_pos" CHECK ("nbPlacesPrem" >= 0),
-	CONSTRAINT "nbPlacesSec_pos" CHECK ("nbPlacesSec" > 0),
-	CONSTRAINT "vitesseMax_pos" CHECK ("vitesseMax" > 0)
+	PRIMARY KEY(numero),
+	refVoyageur NOT NULL,
+	SCOPE FOR (refVoyageur) IS Voyageur,
+	Assurance NOT NULL,
+	MoyenPaiement NOT NULL CHECK (MoyenPaiement IN ('especes', 'cheque', 'carte_bleue'))
 );
+/
 
-CREATE TABLE "Ligne"
+CREATE TABLE Billet
 (
-	"Id" serial PRIMARY KEY,
-	"NomGareDep" varchar,
-	"VilleGareDep" varchar,
-	"NomGareArr" varchar,
-	"VilleGareArr" varchar,
-	"TypeTrain" varchar,
-	CONSTRAINT "Donnees_uniques" UNIQUE ("NomGareDep", "VilleGareDep", "NomGareArr", "VilleGareArr", "TypeTrain"),
-	CONSTRAINT "GareArr_fkey" FOREIGN KEY ("NomGareArr", "VilleGareArr")
-	REFERENCES "Gare" ("Nom", "Ville") MATCH SIMPLE,
-	CONSTRAINT "GareDep_fkey" FOREIGN KEY ("NomGareDep", "VilleGareDep")
-	REFERENCES "Gare" ("Nom", "Ville") MATCH SIMPLE,
-	CONSTRAINT "Ligne_TypeTrain_fkey" FOREIGN KEY ("TypeTrain")
-	REFERENCES "TypeTrain" ("Nom") MATCH SIMPLE,
-    CONSTRAINT "Depart_arrivee_diff" CHECK (("NomGareDep", "VilleGareDep") <> ("NomGareArr", "VilleGareArr")),
-	CONSTRAINT "Id_diff_0" CHECK ("Id" <> 0)
+	numero number PRIMARY KEY,
+	refTrajet REF typTrajet NOT NULL,
+	SCOPE FOR (refTrajet) IS Trajet,
+	dateDepart DATE NOT NULL,
+	Classe varchar2(1) NOT NULL check(Classe IN ('1', '2')),
+	Place number,
+	Annule number(1) NOT NULL,
+	refReservation REF typReservation,
+	SCOPE FOR (refReservation) IS Reservation,
+	CONSTRAINT Place_pos CHECK (Place > 0)
 );
+/
 
-CREATE TABLE "Planning"
-(
-	"Nom" varchar PRIMARY KEY,
-	"Jours" boolean[7] NOT NULL,
-    "Debut" date,
-    "Fin" date,
-	CONSTRAINT "Donnees_key" UNIQUE ("Jours", "Debut", "Fin"),
-    CONSTRAINT "Debut_avant_fin" CHECK ("Debut" <= "Fin")
-);
-
-CREATE TABLE "Exception"
-(
-	"Id" serial PRIMARY KEY,
-	"Nom" varchar,
-	"Planning" varchar NOT NULL,
-	"Ajoute" boolean NOT NULL,
-	"DateDebut" date NOT NULL,
-	"DateFin" date,
-	CONSTRAINT "Planning_fkey" FOREIGN KEY ("Planning")
-	REFERENCES "Planning" ("Nom") MATCH SIMPLE,
-	CONSTRAINT "DateDebut_DateFin_key" UNIQUE ("Planning", "DateDebut", "DateFin"),
-	CONSTRAINT "Nom_key" UNIQUE ("Nom", "Planning"),
-	CONSTRAINT "DateDebutInferieurDateFin" CHECK ("DateDebut"<="DateFin"),
-	CONSTRAINT "Id_diff_0" CHECK ("Id" <> 0)
-);
-
-CREATE TABLE "Trajet"
-(
-	"Id" serial PRIMARY KEY,
-	"Ligne" integer NOT NULL,
-	"HeureDepart" time without time zone NOT NULL,
-	"HeureArrivee" time without time zone NOT NULL,
-	"PrixPrem" numeric(5,2),
-	"PrixSec" numeric(5,2) NOT NULL,
-	"Planning" varchar,
-	CONSTRAINT "Pas_deux_departs_en_mm_tmps" UNIQUE ("HeureArrivee", "Ligne"),
-	CONSTRAINT "Pas_deux_arrivees_en_mm_tmps" UNIQUE ("HeureDepart", "Ligne"),
-	CONSTRAINT "Ligne_fkey" FOREIGN KEY ("Ligne")
-	REFERENCES "Ligne" ("Id") MATCH SIMPLE,
-	CONSTRAINT "Planning_fkey" FOREIGN KEY ("Planning")
-	REFERENCES "Planning" ("Nom") MATCH SIMPLE,
-	CONSTRAINT "Arrivee_apres_depart" CHECK ("HeureDepart" < "HeureArrivee"),
-	CONSTRAINT "PrixSec_pos" CHECK ("PrixSec" > 0),
-	CONSTRAINT "PrixPrem_pos" CHECK ("PrixPrem" > 0),
-	CONSTRAINT "Id_diff_0" CHECK ("Id" <> 0)
-);
-
-CREATE TABLE "Voyageur"
-(
-	"Id" serial PRIMARY KEY,
-	"Nom" varchar NOT NULL,
-	"Prenom" varchar NOT NULL,
-	"NumeroTel" numeric(10,0),
-    "TypeVoyageur" "StatutVoyageur" NOT NULL,
-	"NumeroCarte" numeric(12,0),
-    "Adresse" "Adresse",
-	"Ville" varchar,
-    CONSTRAINT "Ville_fkey" FOREIGN KEY ("Ville")
-	REFERENCES "Ville" ("Nom") MATCH SIMPLE
-	CONSTRAINT "Nom_prenom_adresse_ville_key" UNIQUE ("Nom", "Prenom", "Adresse", "Ville"),
-	CONSTRAINT "NumeroCarte_key" UNIQUE ("NumeroCarte"),
-	CONSTRAINT "NumeroTel_key" UNIQUE ("NumeroTel"),
-	CONSTRAINT "Id_diff_0" CHECK ("Id" <> 0)
-);
-
-CREATE TABLE "Reservation"
-(
-	"Id" serial PRIMARY KEY,
-	"Voyageur" integer NOT NULL,
-	"Assurance" boolean NOT NULL,
-	"MoyenPaiement" "MoyenPaiement" NOT NULL,
-	CONSTRAINT "Voyageur_fkey" FOREIGN KEY ("Voyageur")
-	REFERENCES "Voyageur" ("Id") MATCH SIMPLE,
-	CONSTRAINT "Id_diff_0" CHECK ("Id" <> 0)
-);
-
-CREATE TABLE "Billet"
-(
-	"Id" serial PRIMARY KEY,
-	"Trajet" integer NOT NULL,
-	"Date" date NOT NULL,
-	"Classe" "Classe" NOT NULL,
-	"Place" integer,
-	"Annule" boolean NOT NULL,
-	"Reservation" integer NOT NULL,
-	CONSTRAINT "Reservation_fkey" FOREIGN KEY ("Reservation")
-	REFERENCES "Reservation" ("Id") MATCH SIMPLE,
-	CONSTRAINT "Trajet_fkey" FOREIGN KEY ("Trajet")
-	REFERENCES "Trajet" ("Id") MATCH SIMPLE,
-    CONSTRAINT "Trajet_date_place_key" UNIQUE ("Trajet", "Date", "Place"),
-	CONSTRAINT "Place_pos" CHECK ("Place" > 0),
-	CONSTRAINT "Id_diff_0" CHECK ("Id" <> 0)
-);
-
-
-CREATE OR REPLACE FUNCTION "areExceptionsOverlaping"(
-	DateDebut Date,
-	DateFin Date
-)
-RETURNS int
-LANGUAGE 'plpgsql'
-AS $BODY$
-
-DECLARE
-    Result int;
-BEGIN
-    Result:=0;
-    IF EXISTS(SELECT * FROM "Exception" e WHERE NOT ((e."DateDebut"<DateDebut and e."DateFin"<DateDebut) or (e."DateDebut">DateFin and e."DateFin" > DateFin))) THEN
-        Result := 1;
-    END IF;
-    RETURN Result;
-END
-$BODY$;
-
-ALTER TABLE "Exception"
-ADD CONSTRAINT "overlapingExceptions"
-CHECK ("areExceptionsOverlaping"("DateDebut","DateFin") = 0);
