@@ -84,7 +84,7 @@ CREATE OR REPLACE TYPE typLigne AS OBJECT
 	numero number,
 	GareDep REF typGare,
 	GareArr REF typGare,
-	TypeTrain varchar2(100)
+	refTypeTrain REF typTypeTrain
 );
 /
 
@@ -93,6 +93,7 @@ CREATE TABLE Ligne OF typLigne
 	PRIMARY KEY(numero),
 	SCOPE FOR (GareDep) IS Gare,
 	SCOPE FOR (GareArr) IS Gare,
+	SCOPE FOR (refTypeTrain) IS TypeTrain,
     CONSTRAINT Depart_arrivee_diff CHECK (GareDep <> GareArr),
 	CONSTRAINT Id_diff_0 CHECK (numero <> 0)
 );

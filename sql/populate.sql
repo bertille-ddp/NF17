@@ -60,65 +60,75 @@ INSERT INTO Gare (Nom, Adresse, refVille, Hotels) VALUES
 
 
 
-INSERT INTO Ligne (Numero, GareDep, GareArr, TypeTrain)
-SELECT 1,REF(depart),REF(arrivee),'Grand TER'
-FROM Gare depart, Gare arrivee
+INSERT INTO Ligne (Numero, GareDep, GareArr, refTypeTrain)
+SELECT 1,REF(depart),REF(arrivee),REF(type_)
+FROM Gare depart, Gare arrivee, TypeTrain type_
 WHERE depart.Nom = 'Gare du Nord' AND depart.refVille = 'Paris' 
-AND arrivee.Nom = 'Gare de Compiegne' AND arrivee.refVille = 'Compiegne';
+AND arrivee.Nom = 'Gare de Compiegne' AND arrivee.refVille = 'Compiegne'
+AND type_.Nom = 'Grand TER';
 /
-INSERT INTO Ligne (Numero, GareDep, GareArr, TypeTrain)
-SELECT 2,REF(arrivee),REF(depart),'Grand TER'
-FROM Gare depart, Gare arrivee
+INSERT INTO Ligne (Numero, GareDep, GareArr, refTypeTrain)
+SELECT 2,REF(arrivee),REF(depart),REF(type_)
+FROM Gare depart, Gare arrivee, TypeTrain type_
 WHERE depart.Nom = 'Gare du Nord' AND depart.refVille = 'Paris' 
-AND arrivee.Nom = 'Gare de Compiegne' AND arrivee.refVille = 'Compiegne';
+AND arrivee.Nom = 'Gare de Compiegne' AND arrivee.refVille = 'Compiegne'
+AND type_.Nom = 'Grand TER';
 /
-INSERT INTO Ligne (Numero, GareDep, GareArr, TypeTrain)
-SELECT 3,REF(depart),REF(arrivee),'Intercites'
-FROM Gare depart, Gare arrivee
+INSERT INTO Ligne (Numero, GareDep, GareArr, refTypeTrain)
+SELECT 3,REF(depart),REF(arrivee),REF(type_)
+FROM Gare depart, Gare arrivee, TypeTrain type_
 WHERE depart.Nom = 'Gare du Nord' AND depart.refVille = 'Paris' 
-AND arrivee.Nom = 'Gare de Maubeuge' AND arrivee.refVille = 'Maubeuge';
+AND arrivee.Nom = 'Gare de Maubeuge' AND arrivee.refVille = 'Maubeuge'
+AND type_.Nom = 'Intercites';
 /
-INSERT INTO Ligne (Numero, GareDep, GareArr, TypeTrain)
-SELECT 4,REF(arrivee),REF(depart),'Intercites'
-FROM Gare depart, Gare arrivee
+INSERT INTO Ligne (Numero, GareDep, GareArr, refTypeTrain)
+SELECT 4,REF(arrivee),REF(depart),REF(type_)
+FROM Gare depart, Gare arrivee, TypeTrain type_
 WHERE depart.Nom = 'Gare du Nord' AND depart.refVille = 'Paris' 
-AND arrivee.Nom = 'Gare de Maubeuge' AND arrivee.refVille = 'Maubeuge';
+AND arrivee.Nom = 'Gare de Maubeuge' AND arrivee.refVille = 'Maubeuge'
+AND type_.Nom = 'Intercites';
 /
-INSERT INTO Ligne (Numero, GareDep, GareArr, TypeTrain)
-SELECT 5,REF(depart),REF(arrivee),'TGV Atlantique'
-FROM Gare depart, Gare arrivee
+INSERT INTO Ligne (Numero, GareDep, GareArr, refTypeTrain)
+SELECT 5,REF(depart),REF(arrivee),REF(type_)
+FROM Gare depart, Gare arrivee, TypeTrain type_
 WHERE depart.Nom = 'Gare Montparnasse' AND depart.refVille = 'Paris' 
-AND arrivee.Nom = 'Bordeaux Saint-Jean' AND arrivee.refVille = 'Bordeaux';
+AND arrivee.Nom = 'Bordeaux Saint-Jean' AND arrivee.refVille = 'Bordeaux'
+AND type_.Nom = 'TGV Atlantique';
 /
-INSERT INTO Ligne (Numero, GareDep, GareArr, TypeTrain)
-SELECT 6,REF(arrivee),REF(depart),'TGV Atlantique'
-FROM Gare depart, Gare arrivee
+INSERT INTO Ligne (Numero, GareDep, GareArr, refTypeTrain)
+SELECT 6,REF(arrivee),REF(depart),REF(type_)
+FROM Gare depart, Gare arrivee, TypeTrain type_
 WHERE depart.Nom = 'Gare Montparnasse' AND depart.refVille = 'Paris' 
-AND arrivee.Nom = 'Bordeaux Saint-Jean' AND arrivee.refVille = 'Bordeaux';
+AND arrivee.Nom = 'Bordeaux Saint-Jean' AND arrivee.refVille = 'Bordeaux'
+AND type_.Nom = 'TGV Atlantique';
 /
-INSERT INTO Ligne (Numero, GareDep, GareArr, TypeTrain)
-SELECT 7,REF(depart),REF(arrivee),'TGV Duplex'
-FROM Gare depart, Gare arrivee
+INSERT INTO Ligne (Numero, GareDep, GareArr, refTypeTrain)
+SELECT 7,REF(depart),REF(arrivee),REF(type_)
+FROM Gare depart, Gare arrivee, TypeTrain type_
 WHERE depart.Nom = 'Gare de Lyon' AND depart.refVille = 'Paris' 
-AND arrivee.Nom = 'Lyon Part-Dieu' AND arrivee.refVille = 'Lyon';
+AND arrivee.Nom = 'Lyon Part-Dieu' AND arrivee.refVille = 'Lyon'
+AND type_.Nom = 'TGV Duplex';
 /
-INSERT INTO Ligne (Numero, GareDep, GareArr, TypeTrain)
-SELECT 8,REF(arrivee),REF(depart),'TGV Duplex'
-FROM Gare depart, Gare arrivee
+INSERT INTO Ligne (Numero, GareDep, GareArr, refTypeTrain)
+SELECT 8,REF(arrivee),REF(depart),REF(type_)
+FROM Gare depart, Gare arrivee, TypeTrain type_
 WHERE depart.Nom = 'Gare de Lyon' AND depart.refVille = 'Paris' 
-AND arrivee.Nom = 'Lyon Part-Dieu' AND arrivee.refVille = 'Lyon';
+AND arrivee.Nom = 'Lyon Part-Dieu' AND arrivee.refVille = 'Lyon'
+AND type_.Nom = 'TGV Duplex';
 /
-INSERT INTO Ligne (Numero, GareDep, GareArr, TypeTrain)
-SELECT 9,REF(depart),REF(arrivee),'Intercites'
-FROM Gare depart, Gare arrivee
+INSERT INTO Ligne (Numero, GareDep, GareArr, refTypeTrain)
+SELECT 9,REF(depart),REF(arrivee),REF(type_)
+FROM Gare depart, Gare arrivee, TypeTrain type_
 WHERE depart.Nom = 'Gare du Nord' AND depart.refVille = 'Paris' 
-AND arrivee.Nom = 'Gare de Compiegne' AND arrivee.refVille = 'Compiegne';
+AND arrivee.Nom = 'Gare de Compiegne' AND arrivee.refVille = 'Compiegne'
+AND type_.Nom = 'Intercites';
 /
-INSERT INTO Ligne (Numero, GareDep, GareArr, TypeTrain)
-SELECT 10,REF(arrivee),REF(depart),'Intercites'
-FROM Gare depart, Gare arrivee
+INSERT INTO Ligne (Numero, GareDep, GareArr, refTypeTrain)
+SELECT 10,REF(arrivee),REF(depart),REF(type_)
+FROM Gare depart, Gare arrivee, TypeTrain type_
 WHERE depart.Nom = 'Gare du Nord' AND depart.refVille = 'Paris' 
-AND arrivee.Nom = 'Gare de Compiegne' AND arrivee.refVille = 'Compiegne';
+AND arrivee.Nom = 'Gare de Compiegne' AND arrivee.refVille = 'Compiegne'
+AND type_.Nom = 'Intercites';
 /
 
 

@@ -1,40 +1,40 @@
+
 CREATE OR REPLACE VIEW "Incoherence_place_premiere" AS      -- cette vue renvoie les billets pris en premiere classe dans un train qui n'a que la seconde classe
-    SELECT "Billet"."Id"
-    FROM "Billet" INNER JOIN "Trajet"
-    ON "Billet"."Trajet" = "Trajet"."Id"
-    INNER JOIN "Ligne"
-    ON "Trajet"."Ligne" = "Ligne"."Id"
-    INNER JOIN "TypeTrain"
-    ON "Ligne"."TypeTrain" = "TypeTrain"."Nom"
-    WHERE "Classe" = '1'
-    AND "nbPlacesPrem" = 0
-;
+SELECT b.Numero
+FROM Billet b
+WHERE b.Classe = '1' AND b.refTrajet.refLigne.refTypeTrain.nbPlacesPrem = 0;
+/
 
 CREATE OR REPLACE VIEW "Incoherence_prix_premiere" AS      -- cette vue renvoie les trajets qui indiquent un prix pour la première classe alors que le train n'a que la seconde classe
-    SELECT "Trajet"."Id"
-    FROM "Trajet" INNER JOIN "Ligne"
-    ON "Trajet"."Ligne" = "Ligne"."Id"
-    INNER JOIN "TypeTrain"
-    ON "Ligne"."TypeTrain" = "TypeTrain"."Nom"
-    WHERE "PrixPrem" IS NOT NULL
-    AND "nbPlacesPrem" = 0
+    SELECT traj.Numero
+    FROM Trajet traj 
+    WHERE traj.PrixPrem IS NOT NULL AND traj.refLigne.refTypeTrain.nbPlacesPrem = 0
 ;
+/
+
+
 
 CREATE OR REPLACE VIEW "Incoherence_date_billet" AS      -- cette vue renvoie les billets pris pour des jours où le train en question ne circule pas
-    SELECT "Billet"."Id"
-    FROM "Billet" INNER JOIN "Trajet"
-    ON "Billet"."Trajet" = "Trajet"."Id"
-    WHERE "Trajet"."Planning" NOT IN (SELECT * FROM unnest("trouverPlanning"("Billet"."Date")))
-;
+    SELECT b.Numero
+    FROM Billet b 
+    WHERE b.refTrajet.Planning NOT IN (SELECT * FROM unnest("trouverPlanning"(b.Date)));
+/
+
 
 CREATE OR REPLACE VIEW "FrequentationLignes" AS         -- vue pour obtenir des statistiques sur la fréquentation de chaque ligne
-    SELECT COUNT("Billet"."Id") AS Frequentation, "VilleGareDep" AS Depart, "VilleGareArr" AS Arrivee
-	FROM "Billet" INNER JOIN "Trajet"
-	ON "Billet"."Trajet" = "Trajet"."Id"
-    INNER JOIN "Ligne"
-    ON "Trajet"."Ligne" = "Ligne"."Id"
-    WHERE "Billet"."Annule" = false
-    GROUP BY Depart, Arrivee
+    SELECT COUNT(b.Numero) AS Frequentation, 
+    b.refTrajet.refLigne.GareDep.Nom AS NomDepart, 
+    b.refTrajet.refLigne.GareDep.Adresse AS AdresseDepart,
+    b.refTrajet.refLigne.GareDep.refVille.Nom AS VilleDepart, 
+    b.refTrajet.refLigne.GareArr.Nom AS NomArrivee, 
+    b.refTrajet.refLigne.GareArr.Adresse AS AdresseArrivee,
+    b.refTrajet.refLigne.GareArr.refVille.Nom AS VilleArrivee
+	FROM Billet b
+    WHERE b.Annule = 0
+    GROUP BY b.refTrajet.refLigne.GareDep.Nom, b.refTrajet.refLigne.GareDep.Adresse,
+    b.refTrajet.refLigne.GareDep.refVille.Nom, b.refTrajet.refLigne.GareArr.Nom,
+    b.refTrajet.refLigne.GareArr.Adresse,
+    b.refTrajet.refLigne.GareArr.refVille.Nom
     ORDER BY Frequentation DESC;
 
 CREATE OR REPLACE VIEW "FrequentationGares" AS         -- vue pour obtenir des statistiques sur la fréquentation de chaque ligne
